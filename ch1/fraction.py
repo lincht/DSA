@@ -13,11 +13,11 @@ class Fraction:
     
     def __init__(self, num, den):
         
-        # Check that numerator and denomenator are both integers
+        # Check that numerator and denominator are both integers
         if not isinstance(num, int) or not isinstance(den, int):
             raise TypeError('Both numerator and denominator must be integers')
         
-        # Handle negative denomenator
+        # Handle negative denominator
         if den < 0:
             self.num = -num
             self.den = -den
@@ -41,7 +41,7 @@ class Fraction:
         return self.num
     
     def get_den(self):
-        """Return denomenator of the fraction."""
+        """Return denominator of the fraction."""
         return self.den
     
     def __add__(self, other):
