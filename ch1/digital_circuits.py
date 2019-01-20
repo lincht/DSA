@@ -95,10 +95,10 @@ class TernaryGate(BinaryGate):
         if self.C_in is None:
             return int(input('Enter CIN input for gate {}: '.format(self.get_label())))
         elif isinstance(self.C_in, Connector):
-            if self.pinB.cout is None:
+            if self.C_in.cout is None:
                 return self.C_in.get_from().get_output()
             else:
-                if self.pinB.cout:
+                if self.C_in.cout:
                     return self.C_in.get_from().get_output()[1]
                 else:
                     return self.C_in.get_from().get_output()[0]
@@ -220,16 +220,16 @@ class NotGate(UnaryGate):
 
 class Connector:
     
-    def __init__(self, fgate, tgate, cin=False, cout=None):
+    def __init__(self, fgate, tgate, cout=None, cin=False):
         """
         Parameters
         ----------
-        cin : bool, default: False
-            Whether to connect to togate's CIN.
-        
         cout : bool or None, default: None
             Whether to connect to fromgate's COUT, None if connecting to a gate with 1-bit output.
             If False, connect to fromgate's SUM.
+        
+        cin : bool, default: False
+            Whether to connect to togate's CIN.
         """
         
         self.fromgate = fgate
@@ -249,7 +249,7 @@ class Connector:
 
 
 class HalfAdder(BinaryGate):
-    """Implementation of 1-bit half-adder."""
+    """Implementation of 1-bit half adder."""
     
     def __init__(self, label):
         super().__init__(label)
@@ -269,7 +269,7 @@ class HalfAdder(BinaryGate):
 
 
 class FullAdder(TernaryGate):
-    """Implementation of 1-bit full-adder."""
+    """Implementation of 1-bit full adder."""
     
     def __init__(self, label):
         super().__init__(label)
@@ -291,6 +291,51 @@ class FullAdder(TernaryGate):
         SUM = self.HA2.get_output()[0]
         C_out = self.OR.get_output()
         return SUM, C_out
+
+
+class EightBitFullAdder(TernaryGate):
+    """Implementation of 8-bit full adder."""
+    
+    def __init__(self, label):
+        super().__init__(label)
+        # Use half adder for the first adder
+        self.HA1 = HalfAdder('HA1')
+        self.FA2 = FullAdder('FA2')
+        self.FA3 = FullAdder('FA3')
+        self.FA4 = FullAdder('FA4')
+        self.FA5 = FullAdder('FA5')
+        self.FA6 = FullAdder('FA6')
+        self.FA7 = FullAdder('FA7')
+        self.FA8 = FullAdder('FA8')
+        c12 = Connector(self.HA1, self.FA2, cout=True, cin=True)
+        c23 = Connector(self.FA2, self.FA3, cout=True, cin=True)
+        c34 = Connector(self.FA3, self.FA4, cout=True, cin=True)
+        c45 = Connector(self.FA4, self.FA5, cout=True, cin=True)
+        c56 = Connector(self.FA5, self.FA6, cout=True, cin=True)
+        c67 = Connector(self.FA6, self.FA7, cout=True, cin=True)
+        c78 = Connector(self.FA7, self.FA8, cout=True, cin=True)
+    
+    def perform_gate_logic(self):
+        
+        # For readability, prompt for decimal inputs
+        self.pinA = int(input('Enter input A (8-bit integer, 0-255): '))
+        self.pinB = int(input('Enter input B (8-bit integer, 0-255): '))
+        # Convert to binary string and reverse
+        pinA_bits = str(bin(self.pinA))[2:].zfill(8)[::-1]
+        pinB_bits = str(bin(self.pinB))[2:].zfill(8)[::-1]
+        
+        # Set inputs for all gates
+        gates = ['HA1'] + ['FA'+str(i) for i in range(2, 9)]
+        for g, A, B in zip(gates, pinA_bits, pinB_bits):
+            getattr(self, g).pinA = int(A)
+            getattr(self, g).pinB = int(B)
+        
+        # Concatenate outputs and reverse
+        output = ''.join([str(getattr(self, g).get_output()[0]) for g in gates])[::-1]
+        # Convert back to decimal
+        output = int(eval('0b' + output))
+        
+        return output
 
 
 def main():
