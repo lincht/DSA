@@ -159,3 +159,12 @@ class Sudoku:
             print('Solution:')
             self._update_array()
             print(self)
+
+
+def main():
+    s = load_sample()
+    s.solve()
+
+
+if __name__ == '__main__':
+    main()
