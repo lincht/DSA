@@ -1,4 +1,3 @@
-import copy
 import datetime
 import numpy as np
 
@@ -77,10 +76,8 @@ class Sudoku:
         return 'Sudoku({})'.format(repr(self.array))
     
     def __str__(self):
-        # Replace None's with zeros for nicer look
-        cp = copy.copy(self.array)
-        cp[cp == None] = 0
-        return str(cp)
+        # Replace None's with underscores for nicer look
+        return str(self.array).replace('None', '_')
     
     def __getitem__(self, index):
         """Implement array-like cell access."""
