@@ -29,7 +29,7 @@ class Queue:
         self.items = []
     
     def is_empty(self):
-        return self.items == []
+        return not self.items
     
     def enqueue(self, item):
         self.items.insert(0, item)
@@ -51,3 +51,30 @@ class EndRearQueue(Queue):
     
     def dequeue(self):
         return self.items.pop(0)
+
+
+class Deque:
+    """Implementation of the deque abstract data type, where the rear of
+    the deque is at position 0.
+    """
+    
+    def __init__(self):
+        self.items = []
+    
+    def is_empty(self):
+        return not self.items
+    
+    def add_front(self, item):
+        self.items.append(item)
+    
+    def add_rear(self, item):
+        self.items.insert(0, item)
+    
+    def remove_front(self):
+        return self.items.pop()
+    
+    def remove_rear(self):
+        return self.items.pop(0)
+    
+    def size(self):
+        return len(self.items)
