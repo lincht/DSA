@@ -18,8 +18,8 @@ class Node:
         self.next = node
 
 
-class UnorderedList:
-    """Implementation of the unordered list abstract data type."""
+class LinkedList:
+    """Implementation of the linked list abstract data type."""
     
     def __init__(self):
         self.head = None
@@ -38,13 +38,6 @@ class UnorderedList:
         
         return '[{}]'.format(items[:-2])
     
-    def add(self, item):
-        """Add a new item to the beginning of the list."""
-        
-        n = Node(item)
-        n.set_next(self.head)
-        self.head = n
-    
     def length(self):
         count = 0
         current = self.head
@@ -53,6 +46,46 @@ class UnorderedList:
             current = current.get_next()
         
         return count
+    
+    def pop(self, pos=None):
+        """Remove and return the item at position pos. If pos=None, remove and
+        return the last item.
+        """
+        
+        if self.is_empty():
+            raise IndexError('pop from empty list')
+        
+        if pos is None:
+            pos = self.length() - 1
+        
+        elif pos >= self.length():
+            raise IndexError('pop index out of range')
+        
+        previous = None
+        current = self.head
+        
+        for _ in range(pos):
+            previous = current
+            current = current.get_next()
+        
+        # If the item to be removed is the first item
+        if pos == 0:
+            self.head = current.get_next()
+        else:
+            previous.set_next(current.get_next())
+        
+        return current.get_data()
+
+
+class UnorderedList(LinkedList):
+    """Implementation of the unordered list abstract data type."""
+    
+    def add(self, item):
+        """Add a new item to the beginning of the list."""
+        
+        n = Node(item)
+        n.set_next(self.head)
+        self.head = n
     
     def search(self, item):
         """Search for the item in the list and returns a boolean value."""
@@ -89,21 +122,6 @@ class UnorderedList:
                 previous = current
                 current = current.get_next()
     
-    def append(self, item):
-        """Add a new item to the end of the list."""
-        
-        n = Node(item)
-        current = self.head
-        
-        # Special case - empty list
-        if current is None:
-            self.head = n
-        else:
-            # Find the last node
-            while current.get_next() is not None:
-                current = current.get_next()
-            current.set_next(n)
-    
     def index(self, item):
         """Return the position of the item in the list."""
         
@@ -118,6 +136,21 @@ class UnorderedList:
                 pos += 1
         
         raise ValueError('{} is not in list'.format(item))
+    
+    def append(self, item):
+        """Add a new item to the end of the list."""
+        
+        n = Node(item)
+        current = self.head
+        
+        # Special case - empty list
+        if current is None:
+            self.head = n
+        else:
+            # Find the last node
+            while current.get_next() is not None:
+                current = current.get_next()
+            current.set_next(n)
     
     def insert(self, pos, item):
         """Add a new item to the list at position pos."""
@@ -140,35 +173,6 @@ class UnorderedList:
             previous.set_next(n)
             n.set_next(current)
     
-    def pop(self, pos=None):
-        """Remove and return the item at position pos. If pos=None, remove and
-        return the last item.
-        """
-        
-        if self.is_empty():
-            raise IndexError('pop from empty list')
-        
-        if pos is None:
-            pos = self.length() - 1
-        
-        elif pos >= self.length():
-            raise IndexError('pop index out of range')
-        
-        previous = None
-        current = self.head
-        
-        for _ in range(pos):
-            previous = current
-            current = current.get_next()
-        
-        # If the item to be removed is the first item
-        if pos == 0:
-            self.head = current.get_next()
-        else:
-            previous.set_next(current.get_next())
-        
-        return current.get_data()
-    
     def slice_(self, start, stop):
         """Return a copy of the list starting at the start position and going
         up to but not including the stop position.
@@ -184,3 +188,93 @@ class UnorderedList:
             current = current.get_next()
         
         return sl
+
+
+class OrderedList(LinkedList):
+    """Implementation of the ordered list abstract data type.
+    
+    Only methods for which early stop can be taken advantage of are implemented.
+    The rest are inherited from LinkedList.
+    """
+    
+    def add(self, item):
+        """Add a new item to the list making sure that the order is preserved."""
+        
+        previous = None
+        current = self.head
+        
+        while current is not None:
+            if current.get_data() > item:
+                break
+            else:
+                previous = current
+                current = current.get_next()
+        
+        n = Node(item)
+        # If node is to be added at the beginning (incl. case of empty list)
+        if previous is None:
+            n.set_next(self.head)
+            self.head = n
+        else:
+            previous.set_next(n)
+            n.set_next(current)
+    
+    def search(self, item):
+        """Search for the item in the list."""
+        
+        current = self.head
+        
+        while current is not None:
+            if current.get_data() == item:
+                return True
+            # Early stop by taking advantage of ordering 
+            elif current.get_data() > item:
+                return False
+            else:
+                current = current.get_next()
+        
+        return False
+    
+    def remove(self, item):
+        """Remove the item from the list. Do nothing if the item is not
+        in the list.
+        """
+        
+        previous = None
+        current = self.head
+        
+        while current is not None:
+            
+            if current.get_data() == item:
+                # If the item to be removed is the first item
+                if previous is None:
+                    self.head = current.get_next()
+                else:
+                    previous.set_next(current.get_next())
+                return
+            
+            # Early stop
+            elif current.get_data() > item:
+                return
+            
+            else:
+                previous = current
+                current = current.get_next()
+    
+    def index(self, item):
+        """Return the position of the item in the list."""
+        
+        pos = 0
+        current = self.head
+        
+        while current is not None:
+            if current.get_data() == item:
+                return pos
+            # Early stop
+            elif current.get_data() > item:
+                raise ValueError('{} is not in list'.format(item))
+            else:
+                current = current.get_next()
+                pos += 1
+        
+        raise ValueError('{} is not in list'.format(item))
